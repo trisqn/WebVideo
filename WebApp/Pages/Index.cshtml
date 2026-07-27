@@ -1,0 +1,76 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Klooga laagri videod";
+}
+
+<form id="uploadForm" class="upload-form">
+    <input id="files" name="files" type="file" accept="image/*,video/*" multiple required />
+    <button id="uploadButton" type="submit">Lae üles</button>
+    <progress id="progress" value="0" max="100"></progress>
+    <div id="message" role="status" aria-live="polite"></div>
+</form>
+
+@section Scripts {
+    <script>
+        const form = document.getElementById('uploadForm');
+        const files = document.getElementById('files');
+        const button = document.getElementById('uploadButton');
+        const progress = document.getElementById('progress');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+
+            if (files.files.length === 0) {
+                showMessage('Vali üks pilt või video.', true);
+                return;
+            }
+
+            const request = new XMLHttpRequest();
+            const data = new FormData(form);
+
+            progress.value = 0;
+            button.disabled = true;
+            showMessage('Ülesalaadimine...', false);
+
+            request.upload.addEventListener('progress', event => {
+                if (event.lengthComputable) {
+                    progress.value = Math.round((event.loaded / event.total) * 100);
+                }
+            });
+
+            request.addEventListener('load', () => {
+                button.disabled = false;
+
+                let response = {};
+                try {
+                    response = JSON.parse(request.responseText);
+                } catch {
+                    response.message = request.responseText || 'Upload failed.';
+                }
+
+                if (request.status >= 200 && request.status < 300) {
+                    progress.value = 100;
+                    files.value = '';
+                    showMessage(response.message || 'Upload complete.', false);
+                } else {
+                    showMessage(response.message || 'Upload failed.', true);
+                }
+            });
+
+            request.addEventListener('error', () => {
+                button.disabled = false;
+                showMessage('Upload failed. Check the server and try again.', true);
+            });
+
+            request.open('POST', '/?handler=Upload');
+            request.send(data);
+        });
+
+        function showMessage(text, isError) {
+            message.textContent = text;
+            message.className = isError ? 'error' : 'success';
+        }
+    </script>
+}
