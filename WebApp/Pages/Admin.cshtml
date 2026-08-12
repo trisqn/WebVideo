@@ -1,0 +1,59 @@
+﻿@page
+@model WebApp.Pages.Admin
+
+<div class="admin-header">
+    <h1>Üleslaetud failid</h1>
+    
+    <form method="post" asp-page-handler="Logout">
+        <button class="logout-button" type="submit">
+            Logi välja
+        </button>
+    </form>
+</div>
+
+<table class="admin-table">
+    <thead>
+    <tr>
+        <th>Fail</th>
+        <th>Suurus</th>
+        <th>Kuupäev</th>
+        <th>Tegevused</th>
+    </tr>
+    </thead>
+    
+    <tbody>
+    @foreach (var file in Model.Files)
+    {
+        <tr>
+            <td>@file.Name</td>
+            <td>@(Math.Round(file.Length / 1024.0 / 1024.0, 2)) MB</td>
+            <td>@file.CreationTime.ToString("dd.MM.yyyy HH:mm")</td>
+
+            <td>
+                <div class="actions">
+                    <form method="post"
+                          asp-page-handler="Download">
+                        <input type="hidden"
+                               name="fileName"
+                               value="@file.Name"/>
+                        <button type="submit" class="download-link">Laadi alla</button>
+
+                    </form>
+
+                    <form method="post"
+                          asp-page-handler="Delete">
+                        <input type="hidden"
+                               name="fileName"
+                               value="@file.Name"/>
+                        <button type="submit"
+                                onclick="return confirm('Oled kindel, et soovid kustutada?')" class="delete-button">
+                            Kustuta
+                        </button>
+
+                    </form>
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

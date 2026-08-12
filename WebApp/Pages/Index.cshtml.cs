@@ -34,7 +34,7 @@ public class IndexModel : PageModel
         {
             if (!IsPhotoOrVideo(file))
             {
-                return BadRequest(new { message = $"{file.FileName} is not a photo or video." });
+                return BadRequest(new { message = $"{file.FileName} ei ole pilt ega video." });
             }
 
             var fileName = BuildStoredFileName(file.FileName);
@@ -47,16 +47,26 @@ public class IndexModel : PageModel
 
         if (savedCount == 0)
         {
-            return BadRequest(new { message = "The selected file was empty." });
+            return BadRequest(new { message = "Valitud fail oli tühi." });
         }
 
-        return new JsonResult(new { message = $"Uploaded {savedCount} file(s)." });
+        return new JsonResult(new { message = $"Üles laetud {savedCount} üksus(t)." });
     }
 
     private static bool IsPhotoOrVideo(IFormFile file)
     {
-        return file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
-               || file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        return extension is
+            ".jpg" or
+            ".jpeg" or
+            ".png" or
+            ".gif" or
+            ".webp" or
+            ".heic" or
+            ".heif" or
+            ".mp4" or
+            ".mov";
     }
 
     private static string BuildStoredFileName(string originalFileName)

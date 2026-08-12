@@ -1,15 +1,21 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Klooga laagri videod";
+    ViewData["Title"] = "Klooga laagri üleslaadimiskeskkond";
 }
-
-<form id="uploadForm" class="upload-form">
-    <input id="files" name="files" type="file" accept="image/*,video/*" multiple required />
-    <button id="uploadButton" type="submit">Lae üles</button>
-    <progress id="progress" value="0" max="100"></progress>
-    <div id="message" role="status" aria-live="polite"></div>
-</form>
+<div class="upload-container">
+    <form id="uploadForm" class="upload-form">
+        <input id="files"
+               name="files"
+               type="file"
+               accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.mp4,.mov"
+               multiple
+               required />
+        <button id="uploadButton" type="submit">Lae üles</button>
+        <progress id="progress" value="0" max="100"></progress>
+        <div id="message" role="status" aria-live="polite"></div>
+    </form>
+</div>
 
 @section Scripts {
     <script>
@@ -47,21 +53,21 @@
                 try {
                     response = JSON.parse(request.responseText);
                 } catch {
-                    response.message = request.responseText || 'Upload failed.';
+                    response.message = request.responseText || 'Üleslaadimine ebaõnnestus.';
                 }
 
                 if (request.status >= 200 && request.status < 300) {
                     progress.value = 100;
                     files.value = '';
-                    showMessage(response.message || 'Upload complete.', false);
+                    showMessage(response.message || 'Üleslaadimine õnnestus.', false);
                 } else {
-                    showMessage(response.message || 'Upload failed.', true);
+                    showMessage(response.message || 'Üleslaadimine ebaõnnestus.', true);
                 }
             });
 
             request.addEventListener('error', () => {
                 button.disabled = false;
-                showMessage('Upload failed. Check the server and try again.', true);
+                showMessage('Üleslaadimine ebaõnnestus. Kontrolli ühendust ja proovi uuesti.', true);
             });
 
             request.open('POST', '/?handler=Upload');

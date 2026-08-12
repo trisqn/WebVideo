@@ -1,0 +1,16 @@
+﻿@page
+@model WebApp.Pages.AdminLoginModel
+
+<h2>Admin sisselogimine</h2>
+
+<link rel="stylesheet" asp-href-include="~/css/site.css" />
+
+<form method="post">
+    <input asp-for="Password" type="password" placeholder="Sisesta parool"/>
+    <button type="submit">Logi sisse</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <p style="color:red">@Model.ErrorMessage</p>
+}

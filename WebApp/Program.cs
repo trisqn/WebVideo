@@ -14,6 +14,13 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = null;
 });
 
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(12);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,6 +32,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthorization();
 
