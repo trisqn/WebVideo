@@ -7,7 +7,7 @@ public class Admin : PageModel
 {
     private readonly IWebHostEnvironment _environment;
     
-    public List<FileInfo> Files { get; set; }
+    public List<FileInfo> Files { get; set; } = new();
 
     public Admin(IWebHostEnvironment environment)
     {
@@ -16,7 +16,7 @@ public class Admin : PageModel
 
     public IActionResult OnGet()
     {
-        if (HttpContext.Session.GetString("IsAdmin") != "true")
+        if (!IsAuthenticated())
         {
             return RedirectToPage("/AdminLogin");
         }
@@ -42,18 +42,25 @@ public class Admin : PageModel
 
     public IActionResult OnPostLogout()
     {
+        if (!IsAuthenticated())
+        {
+            return RedirectToPage("/AdminLogin");
+        }
+
         HttpContext.Session.Remove("IsAdmin");
         return RedirectToPage("/AdminLogin");
     }
     
     public IActionResult OnPostDelete(string fileName)
     {
-        var path = Path.Combine(
-            _environment.ContentRootPath,
-            "uploads",
-            fileName);
+        if (!IsAuthenticated())
+        {
+            return RedirectToPage("/AdminLogin");
+        }
 
-        if (System.IO.File.Exists(path))
+        var path = ResolveUploadPath(fileName);
+
+        if (path is not null && System.IO.File.Exists(path))
         {
             System.IO.File.Delete(path);
         }
@@ -63,12 +70,14 @@ public class Admin : PageModel
 
     public IActionResult OnPostDownload(string fileName)
     {
-        var path = Path.Combine(
-            _environment.ContentRootPath,
-            "uploads",
-            fileName);
+        if (!IsAuthenticated())
+        {
+            return RedirectToPage("/AdminLogin");
+        }
 
-        if (!System.IO.File.Exists(path))
+        var path = ResolveUploadPath(fileName);
+
+        if (path is null || !System.IO.File.Exists(path))
         {
             return NotFound();
         }
@@ -77,6 +86,33 @@ public class Admin : PageModel
             path,
             "application/octet-stream",
             fileName);
+    }
+
+    private bool IsAuthenticated()
+    {
+        return HttpContext.Session.GetString("IsAdmin") == "true";
+    }
+
+    private string? ResolveUploadPath(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) ||
+            Path.GetFileName(fileName) != fileName)
+        {
+            return null;
+        }
+
+        var uploadRoot = Path.GetFullPath(
+            Path.Combine(_environment.ContentRootPath, "uploads"));
+        var fullPath = Path.GetFullPath(Path.Combine(uploadRoot, fileName));
+
+        if (!fullPath.StartsWith(
+                uploadRoot + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return fullPath;
     }
     
 }

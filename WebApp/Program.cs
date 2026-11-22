@@ -7,6 +7,7 @@ builder.Services.AddRazorPages();
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = long.MaxValue;
+    options.ValueLengthLimit = int.MaxValue;
 });
 
 builder.WebHost.ConfigureKestrel(options =>
@@ -22,6 +23,12 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+if (string.IsNullOrWhiteSpace(app.Configuration["ADMIN_PASSWORD"]))
+{
+    throw new InvalidOperationException(
+        "Keskkonnamuutuja ADMIN_PASSWORD peab olema seadistatud.");
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -42,3 +49,4 @@ app.MapRazorPages()
     .WithStaticAssets();
 
 app.Run();
+
